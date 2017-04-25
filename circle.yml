@@ -1,0 +1,12 @@
+machine:
+  node:
+    version: 6.10.2
+dependencies:
+  override:
+    - npm install
+deployment:
+  staging:
+    branch: master
+    heroku:
+      appname: tessellated-security
+      url: "https://git.heroku.com/tessellated-security.git"
