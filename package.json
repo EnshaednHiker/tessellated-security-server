@@ -8,7 +8,8 @@
   },
   "scripts": {
     "test": "mocha",
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "nodemon server.js"
   },
   "repository": {
     "type": "git",
@@ -23,8 +24,13 @@
   "dependencies": {
     "body-parser": "^1.17.1",
     "express": "^4.15.2",
+    "express-jwt": "^5.3.0",
+    "jsonwebtoken": "^7.4.0",
     "mongoose": "^4.9.5",
-    "morgan": "^1.8.1"
+    "mongoose-unique-validator": "^1.0.5",
+    "morgan": "^1.8.1",
+    "passport": "^0.3.2",
+    "passport-local": "^1.0.0"
   },
   "devDependencies": {
     "chai": "^3.5.0",
