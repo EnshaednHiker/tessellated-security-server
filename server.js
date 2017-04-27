@@ -5,8 +5,6 @@ mongoose.Promise = global.Promise;
 
 const morgan = require('morgan');
 
-require('./models/User');
-require('./config/passport');
 
 const app = express();
 
