@@ -37,6 +37,12 @@ request body from form needs to be in this format:
 }
 */
 
+//endpoint to serve the index.html
+router.get("/", (req,res,next) => {
+  
+});
+
+
 //endpoint creating new users i.e. registering with the site
 router.post('/users', (req,res,next) => {
   let user = new User();

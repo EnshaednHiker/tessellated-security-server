@@ -35,7 +35,7 @@ userSchema.methods.generateJWT = function() {
 userSchema.methods.generateDeviceJWT = function() {
     return jwt.sign({
     id: this._id,
-    username: this.username
+    username: this.username 
   }, SECRET);
 };
 

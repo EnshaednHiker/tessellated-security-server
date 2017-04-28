@@ -7,20 +7,31 @@ const mongoose = require('mongoose');
 const should = chai.should();
 const expect = chai.expect;
 
-const {app} = require('../server');
-
+const {app, runServer, closeServer} = require('../server');
+const {TEST_DATABASE_URL} = require('../config/config');
 chai.use(chaiHttp);
+
+describe('Tessellated Security API', function() {
+  before(function() {
+    return runServer(TEST_DATABASE_URL);
+  });
+
+
+  after(function() {
+     return closeServer();
+  })
 
   describe('GET endpoint', function() {
 
     it('getting the index.html should return a 200 response', function() {
       let res;
-      return chai.request("http://localhost:8080")
+      return chai.request(app)
         .get('/')
-        .end(function(_res) {
+        .then(function(_res) {
           res = _res;
           expect(res).to.have.status(200);
-          done();
-        });
+          //done();
+        })
     });
   });
+});
