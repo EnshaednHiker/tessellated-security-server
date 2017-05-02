@@ -11,13 +11,13 @@ const app = express();
 app.use(express.static('public'));
 
 
-const {PORT, DATABASE_URL} = require('./config/config');
+const {PORT, DATABASE_URL} = require('./config');
 
-//const {router} = require('./routes/router');
+const router = require('./router');
 
 app.use(morgan('common'));
 
-app.use(require('./routes/router'));
+app.use('/', router);
 
 let server;
 

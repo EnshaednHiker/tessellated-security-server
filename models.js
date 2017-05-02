@@ -3,7 +3,7 @@ const uniqueValidator = require('mongoose-unique-validator');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 
-const {SECRET} = require('../config/config');
+const {SECRET} = require('./config');
 
 const userSchema = mongoose.Schema({
   username: {type: String, required: [true, "can't be blank"], index: true, unique: true},
@@ -43,6 +43,8 @@ userSchema.methods.validPassword = function (password, user){
   return user.hash===crypto.pbkdf2Sync(password, user.salt, 10000, 512, 'sha512').toString('hex')
 };
 
+
+
 userSchema.methods.toAuthJSON = function(){
   return {
     username: this.username,
@@ -54,5 +56,6 @@ userSchema.methods.toAuthJSON = function(){
 
 userSchema.plugin(uniqueValidator);
 const User = mongoose.model('User', userSchema);
+
 
 module.exports = User;
