@@ -24,28 +24,30 @@ chai.use(chaiHttp);
 function seedUserData() {
   console.info('seeding User data');
   const dummyUsers = [
-  {
-    username: 'user40',
-    email: "tesseluser40@gmail.com",
-    password: "abcd1234"
-  },
-  {
-    username: 'bigdaddy',
-    email: "tesselpapatessel@gmail.com",
-    password: "efgh5678"
-  },
-  {
-    username: 'thetesselation',
-    email: "tesselthetesselation@gmail.com",
-    password: "ijkl9101112"
-  }
-]
+    {
+      username: 'user40',
+      email: "tesseluser40@gmail.com",
+      password: "abcd1234"
+    },
+    {
+      username: 'bigdaddy',
+      email: "tesselpapatessel@gmail.com",
+      password: "efgh5678"
+    },
+    {
+      username: 'thetesselation',
+      email: "tesselthetesselation@gmail.com",
+      password: "ijkl9101112"
+    }
+  ]
   dummyUsers.forEach(function(User){
       return chai.request(app)
         .post('/users')
         .set("Content-Type", "application/json")
-        .send({user: User})
+        .send({user:User})
+        .then((res) => console.info("seeded user: ", res.body.user.username));
   });
+  //return User.insertMany(dummyUsers);
 }
 
 
@@ -80,16 +82,13 @@ describe('Tessellated Security API', function() {
      return closeServer();
   })
 
-  describe('GET endpoint', function() {
+  describe('Serving Static Files', function() {
 
-    it('getting the index.html should return a 200 response', function() {
-      let res;
+    it('GET endpoint: a user should be able to visit the index.html', function() {
       return chai.request(app)
         .get('/')
-        .then(function(_res) {
-          res = _res;
+        .then(function(res) {
           expect(res).to.have.status(200);
-          //done();
         })
     });
   });
@@ -111,11 +110,11 @@ describe('Tessellated Security API', function() {
           res.body.should.be.a('object');
           res.body.user.username.should.equal(dummyUser.username);
           res.body.user.email.should.equal(dummyUser.email);
-          /*user.validPassword(dummyUser.password, 
-            User.
-              findOne({username:dummyUser.username})
-              .exec()
-            ).should.equal.to.true;*/
+    
+          return User.findOne({username:dummyUser.username})
+        })
+        .then(function(_user){
+          expect(_user.validPassword(dummyUser.password,_user)).to.be.true;
         })
         .catch(function(err){
           console.log(err);
@@ -128,13 +127,14 @@ describe('Tessellated Security API', function() {
         email: "tesseluser40@gmail.com",
         password: "abcd1234"
       };
+
         return chai.request(app)
           .post('/users')
           .set("Content-Type", "application/json")
           .send({user:duplicativeUser})
-          .then(function(res){
+          .catch(function(err){
            //should assertions testing that an already registered user cannot make an account
-           //console.log("duplicative user post endpoint",res.body);
+           err.should.have.status(500);
           })
        
         
@@ -149,30 +149,68 @@ describe('Tessellated Security API', function() {
       }
       //this is the token that encrypts the credentials sent from client to server over the wire
       let tokenPayload = auth.encrypt(user);
-       
-
       return chai.request(app)
         .post('/users/login')
         .set("Content-Type", "application/json")
         .send({payload:tokenPayload})
-        //how do I want to handle this? decide how I want it to be generic
         .then(function(res){
-          //this is an authentication token that gets created after we've successfully logged in
+          //this is an authentication token that gets created after we've successfully logged in, will be reused in protected endpoint tests for testing when a user is logged in
           authenticatedToken = res.body.user.token;
-          console.log("login response: ", res.body);
+          //make more assertions, confirm username, email, and token are all being sent
           res.body.user.email.should.equal("tesseluser40@gmail.com");
           res.body.user.token.should.be.a('string');
           res.body.user.username.should.equal(user.user.username);
-          console.log("decrypted token: ", auth.jwt.verify(res.body.user.token, auth.secret));
-          //make more assertions, confirm username, email, and token are all being sent
           //decrypt the token and see what's in there, any good assertions to be made there?
+          decryptedResponseToken = auth.jwt.verify(res.body.user.token, auth.secret);
+          //.exp is when the token expires while .iat is when the token was created, exp should be larger (come after) than iat
+          expect(decryptedResponseToken.exp).to.be.above(decryptedResponseToken.iat);
         })
     });
     it('GET endpoint: a user needs to get the user\'s auth payload from their token', function(){
 
     });
     it("PUT endpoint: a user needs to be able to update one's username, email, or password", function(){
+            //find user
+      let userNew = {
+          username: 'user40new',
+          password: "abcd1234new"
+      }
+      
+      let userNewCredentials =  {
+          username: 'user40new',
+          password: "abcd1234new",
+          email: "tesseluser40new@gmail.com"
+        }
 
+      let userOld = {
+          username: 'user40',
+          password: "abcd1234"
+      }
+      
+      let userOldCredentials = {
+          username: 'user40',
+          password: "abcd1234",
+          email: "tesseluser40@gmail.com"
+        }
+      //this is the token that encrypts the credentials sent from client to server over the wire
+      let user = auth.jwt.verify(authenticatedToken, auth.secret);
+      
+      return chai.request(app)
+        .put(`/user/${user.id}`)
+        .set("Authorization", `Bearer ${authenticatedToken}`)
+        .send({user:userNewCredentials})
+        .then(function(res){
+          res.should.have.status(201);
+          return User.findById(user.id).exec();
+        })
+        .then(function(_user){
+          //make more assertions, confirm username, email, and token are all being sent
+          _user.email.should.equal(userNewCredentials.email);
+          _user.username.should.equal(userNewCredentials.username);
+          expect(_user.validPassword(userNewCredentials.password, _user)).to.be.true;
+        });
+
+      
     });
 
     it("POST endpoint: a user needs to be able to set a tessel device token and tessel device name", function(){
@@ -189,9 +227,8 @@ describe('Tessellated Security API', function() {
     });
     it("DELETE endpoint: a user needs to be able to delete a user account", function(){
       let user = auth.jwt.verify(authenticatedToken, auth.secret);
-      console.log("delete endpoint", user);
-      
-      return chai.request(app).delete(`/user/${user.id}`)
+      return chai.request(app)
+        .delete(`/user/${user.id}`)
         .set("Authorization", `Bearer ${authenticatedToken}`)
         .then(function(res){
           res.should.have.status(204);

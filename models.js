@@ -5,6 +5,8 @@ const jwt = require('jsonwebtoken');
 
 const {SECRET} = require('./config');
 
+
+
 const userSchema = mongoose.Schema({
   username: {type: String, required: [true, "can't be blank"], index: true, unique: true},
   email: {type: String, required: [true, "can't be blank"], match: [/\S+@\S+\.\S+/, 'is invalid'], index: true, unique: true},
@@ -13,7 +15,8 @@ const userSchema = mongoose.Schema({
   deviceTokens: Array
 }, {timestamps: true});
 
-//replace crypto bits with bcrypt so that I can use the bcrypt compare function for validPassword
+
+
 userSchema.methods.setPassword = function(password){
   this.salt = crypto.randomBytes(16).toString('hex');
   this.hash = crypto.pbkdf2Sync(password, this.salt, 10000, 512, 'sha512').toString('hex');
