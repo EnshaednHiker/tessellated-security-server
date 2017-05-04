@@ -167,14 +167,13 @@ describe('Tessellated Security API', function() {
         })
     });
     it('GET endpoint: a user needs to get the user\'s auth payload from their token', function(){
+      //this is the token that encrypts the credentials sent from client to server over the wire
+      let user = auth.jwt.verify(authenticatedToken, auth.secret);
+      //chai request to to get user's auth
+
 
     });
-    it("PUT endpoint: a user needs to be able to update one's username, email, or password", function(){
-            //find user
-      let userNew = {
-          username: 'user40new',
-          password: "abcd1234new"
-      }
+    it("PUT endpoint: a user needs to be able to update one's username, email, or password to new credentials", function(){
       
       let userNewCredentials =  {
           username: 'user40new',
@@ -182,19 +181,9 @@ describe('Tessellated Security API', function() {
           email: "tesseluser40new@gmail.com"
         }
 
-      let userOld = {
-          username: 'user40',
-          password: "abcd1234"
-      }
-      
-      let userOldCredentials = {
-          username: 'user40',
-          password: "abcd1234",
-          email: "tesseluser40@gmail.com"
-        }
       //this is the token that encrypts the credentials sent from client to server over the wire
       let user = auth.jwt.verify(authenticatedToken, auth.secret);
-      
+      //chai request to initially change the user's credentials to new ones
       return chai.request(app)
         .put(`/user/${user.id}`)
         .set("Authorization", `Bearer ${authenticatedToken}`)
@@ -209,8 +198,31 @@ describe('Tessellated Security API', function() {
           _user.username.should.equal(userNewCredentials.username);
           expect(_user.validPassword(userNewCredentials.password, _user)).to.be.true;
         });
+    });
+it("PUT endpoint: a user needs to be able to update one's username, email, or password to old credentials", function(){
+      let userOldCredentials = {
+          username: 'user40',
+          password: "abcd1234",
+          email: "tesseluser40@gmail.com"
+        }
+      //this is the token that encrypts the credentials sent from client to server over the wire
+      let user = auth.jwt.verify(authenticatedToken, auth.secret);
 
-      
+        //chai request to finally change the the user's credentials back to the old ones
+        return chai.request(app)
+          .put(`/user/${user.id}`)
+          .set("Authorization", `Bearer ${authenticatedToken}`)
+          .send({user:userOldCredentials})
+          .then(function(res){
+            res.should.have.status(201);
+            return User.findById(user.id).exec();
+          })
+          .then(function(_user){
+            //make more assertions, confirm username, email, and token are all being sent
+            _user.email.should.equal(userOldCredentials.email);
+            _user.username.should.equal(userOldCredentials.username);
+            expect(_user.validPassword(userOldCredentials.password, _user)).to.be.true;
+          }); 
     });
 
     it("POST endpoint: a user needs to be able to set a tessel device token and tessel device name", function(){

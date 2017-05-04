@@ -7,12 +7,18 @@ const {SECRET} = require('./config');
 
 
 
+
+const deviceSchema = mongoose.Schema({
+  deviceName: {type: String, required: [true, "can't be blank"], index: true, unique: true},
+  deviceToken: String
+}, {timestamps: true});
+
 const userSchema = mongoose.Schema({
   username: {type: String, required: [true, "can't be blank"], index: true, unique: true},
   email: {type: String, required: [true, "can't be blank"], match: [/\S+@\S+\.\S+/, 'is invalid'], index: true, unique: true},
   hash: String,
   salt: String,
-  deviceTokens: Array
+  devices: [deviceSchema]
 }, {timestamps: true});
 
 
@@ -35,12 +41,7 @@ userSchema.methods.generateJWT = function() {
   }, SECRET);
 };
 
-userSchema.methods.generateDeviceJWT = function() {
-    return jwt.sign({
-    id: this._id,
-    username: this.username 
-  }, SECRET);
-};
+
 
 userSchema.methods.validPassword = function (password, user){
   return user.hash===crypto.pbkdf2Sync(password, user.salt, 10000, 512, 'sha512').toString('hex')
@@ -49,6 +50,7 @@ userSchema.methods.validPassword = function (password, user){
 
 
 userSchema.methods.toAuthJSON = function(){
+  
   return {
     username: this.username,
     email: this.email,
@@ -56,6 +58,30 @@ userSchema.methods.toAuthJSON = function(){
   };
 };
 
+
+
+deviceSchema.methods.generateDeviceJWT = function() {
+    return jwt.sign({
+    id: this._id,
+    deviceName: this.deviceName 
+  }, SECRET);
+};
+
+
+deviceSchema.methods.toAuthDeviceJSON = function(){
+  return {
+    deviceName: this.deviceName,
+    deviceToken: this.deviceToken
+  };
+};
+/*
+deviceSchema.methods.generateNewDevice = function (deviceName){
+  return { 
+    token: this.generateDeviceJWT(),
+    deviceName: deviceName
+  };
+};
+*/
 
 userSchema.plugin(uniqueValidator);
 const User = mongoose.model('User', userSchema);

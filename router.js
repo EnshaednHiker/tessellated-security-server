@@ -71,6 +71,7 @@ router.post('/users/login', auth.decrypt, (req,res,next) => {
     if(err){ return next(err);}
     if(user){
       user.token = user.generateJWT();
+      
       return res.status(201).json({user: user.toAuthJSON()});
     } 
     else {
@@ -104,7 +105,7 @@ router.put('/user/:ID', auth.required, (req,res,next)=>{
       user.setPassword(req.body.user.password);
     }
 
-  /*line 107*/  return user.save().then( ()=>res.sendStatus(201).json({user: user.toAuthJSON()}))
+  /*line 107*/  return user.save().then( ()=>res.status(201).json({user: user.toAuthJSON()}))
   }).catch(next);
 });
 
@@ -123,15 +124,27 @@ router.delete('/user/:ID', auth.required, (req,res,next)=>{
 
 //try to get tessel to talk to server with a get
 //viable NPM packages according to Ken: request, request-promise, superagent
-//tessel will need ip of my pc plus port since server is locally hosted
 
-router.get('/tessel', (req,res,next) =>{
-  res.sendStatus(200).send("The tessel touched the face of God!");
+
+//POST endpoint for user to set a tessel device token and tessel device name i.e. "Backdoor" or "Garage door"
+router.post('/user/:ID/tessel', auth.required, (req,res,next) =>{
+    User.findById(req.params.ID)
+    .then((user)=>{
+      if(!user){ return res.sendStatus(401); }
+      user.deviceSchema
+        .create({
+          deviceName:req.body.user.devices.deviceName,
+          deviceToken: user.deviceSchema.generateDeviceJWT()
+        })
+        .then( () => {
+          return res.status(201).json({user:{devices:user.deviceSchema.toAuthDeviceJSON()}});
+        });
+    });
 });
 
-
-router.post('/user/:ID', auth.required, (req,res,next) =>{
-  User.findById(req.payload.id).then((user)=>{
+//POST endpoint for the tessel to send requests to go get emails sent to the user
+router.post('/user/:ID/tessel/:tesselID', auth.required, (req,res,next) =>{
+  User.findById(req.params.ID).then((user)=>{
     if(!user){ return res.sendStatus(401); }
 
 
