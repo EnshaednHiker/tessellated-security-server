@@ -105,7 +105,7 @@ router.put('/user/:ID', auth.required, (req,res,next)=>{
       user.setPassword(req.body.user.password);
     }
 
-  /*line 107*/  return user.save().then( ()=>res.status(201).json({user: user.toAuthJSON()}))
+    return user.save().then( ()=>res.status(201).json({user: user.toAuthJSON()}))
   }).catch(next);
 });
 
@@ -128,18 +128,22 @@ router.delete('/user/:ID', auth.required, (req,res,next)=>{
 
 //POST endpoint for user to set a tessel device token and tessel device name i.e. "Backdoor" or "Garage door"
 router.post('/user/:ID/tessel', auth.required, (req,res,next) =>{
-    User.findById(req.params.ID)
-    .then((user)=>{
-      if(!user){ return res.sendStatus(401); }
-      user.deviceSchema
-        .create({
-          deviceName:req.body.user.devices.deviceName,
-          deviceToken: user.deviceSchema.generateDeviceJWT()
-        })
-        .then( () => {
-          return res.status(201).json({user:{devices:user.deviceSchema.toAuthDeviceJSON()}});
-        });
+  let _user;
+  
+   return User.findById(req.params.ID)
+  .then((user)=>{
+    console.log("Tessel Router Post: ", user);
+    if(!user){ return res.sendStatus(401); }
+    user.devices.push({
+        deviceName:req.body.user.devices.deviceName,
+        deviceToken: user.generateDeviceJWT()
+      });
+
+      return user.save().then( () => {
+        return res.status(201).json({user:{devices:{[User.findById(req.params.ID).toAuthDeviceJSON()]}}});
     });
+  })
+  .catch(next);
 });
 
 //POST endpoint for the tessel to send requests to go get emails sent to the user

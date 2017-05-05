@@ -226,7 +226,16 @@ it("PUT endpoint: a user needs to be able to update one's username, email, or pa
     });
 
     it("POST endpoint: a user needs to be able to set a tessel device token and tessel device name", function(){
-
+      //this is the token that encrypts the credentials sent from client to server over the wire
+      let user = auth.jwt.verify(authenticatedToken, auth.secret);
+        //chai request to post the user's choice of deviceName and get back a token
+        return chai.request(app)
+          .post(`/user/${user.id}/tessel`)
+          .set("Authorization", `Bearer ${authenticatedToken}`)
+          .send({user:{devices:{deviceName: "Garage door tessel"}}})
+          .then(function(res){
+            console.log("tessel post: ", res);
+          });
     });
     it("PUT endpoint: a user needs to be able to update a tessel device token and/or name", function(){
 

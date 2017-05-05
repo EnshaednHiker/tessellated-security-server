@@ -9,7 +9,7 @@ const {SECRET} = require('./config');
 
 
 const deviceSchema = mongoose.Schema({
-  deviceName: {type: String, required: [true, "can't be blank"], index: true, unique: true},
+  deviceName: {type: String, required: [true, "can't be blank"], unique: true},
   deviceToken: String
 }, {timestamps: true});
 
@@ -60,7 +60,7 @@ userSchema.methods.toAuthJSON = function(){
 
 
 
-deviceSchema.methods.generateDeviceJWT = function() {
+userSchema.methods.generateDeviceJWT = function() {
     return jwt.sign({
     id: this._id,
     deviceName: this.deviceName 
@@ -68,11 +68,15 @@ deviceSchema.methods.generateDeviceJWT = function() {
 };
 
 
-deviceSchema.methods.toAuthDeviceJSON = function(){
-  return {
-    deviceName: this.deviceName,
-    deviceToken: this.deviceToken
-  };
+
+userSchema.methods.toAuthDeviceJSON = function(){
+  this.user.devices.forEach(function(device){
+    
+    return {
+      deviceName: device.deviceName,
+      deviceToken: device.deviceToken
+    };
+  });
 };
 /*
 deviceSchema.methods.generateNewDevice = function (deviceName){
