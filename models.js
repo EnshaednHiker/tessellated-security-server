@@ -66,7 +66,7 @@ userSchema.methods.generateDeviceJWT = function(deviceName) {
 
 //Child schemas do not get their own instance methods, have to assign them to the parent
 //JSON to be sent to the client after a new device created or updated or deleted
-userSchema.methods.toAuthDeviceJSON = function(){
+userSchema.methods.toAuthDevicesJSON = function(){
 
   return this.devices.map(function(device){
     return {
@@ -75,6 +75,14 @@ userSchema.methods.toAuthDeviceJSON = function(){
       deviceId: device._id
     };
   },this);
+};
+
+userSchema.methods.toAuthDeviceJSON = function(){
+    return {
+      deviceName: device.deviceName,
+      deviceToken: device.deviceToken,
+      deviceId: device._id
+    };
 };
 
 //the unique validator plugin has to be added prior to assigning the schema to the const User, fyi

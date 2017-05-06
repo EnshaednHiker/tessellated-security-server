@@ -249,7 +249,25 @@ it("PUT endpoint: a user needs to be able to update one's username, email, or pa
           });
     });
     it("PUT endpoint: a user needs to be able to update a tessel device token and/or name", function(){
-
+        //this is the token that encrypts the credentials sent from client to server over the wire
+      let user = auth.jwt.verify(authenticatedToken, auth.secret);
+      let initialDeviceToken = user.devices[0].deviceToken;
+        //chai request to post the user's choice of deviceName and get back a token
+        return chai.request(app)
+          .put(`/user/${user.id}/tessel/${user.devices[0].id}`)
+          .set("Authorization", `Bearer ${authenticatedToken}`)
+          .send({user:{devices:{deviceName: "Front door tessel"}}})
+          .then(function(res){
+            res.should.have.status(201);
+            return User.devices.id(user.devices[0].id);
+          })
+          .then(function(_device){
+            expect(_device.deviceName).to.equal("Front door tessel")
+            expect(initialDeviceToken).to.not.equal(_device.deviceToken);
+            _device.deviceToken.should.be.a("string");
+            //all tokens start with the "e" character
+            expect(_device.deviceToken.charAt(0)).to.equal('e');
+          });
     });
     it("DELETE endpoint: a user needs to be able to delete a tessel device token/tessel name", function(){
 

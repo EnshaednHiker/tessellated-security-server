@@ -129,30 +129,62 @@ router.delete('/user/:ID', auth.required, (req,res,next)=>{
 //POST endpoint for user to set a tessel device token and tessel device name i.e. "Backdoor" or "Garage door"
 router.post('/user/:ID/tessel', auth.required, (req,res,next) =>{
   
-   return User.findById(req.params.ID)
-  .then((user)=>{
-    if(!user){ return res.sendStatus(401); }
+  return User.findById(req.params.ID)
+    .then((user)=>{
+      if(!user){ return res.sendStatus(401); }
+      user.devices.push({
+          deviceName:req.body.user.devices.deviceName,
+          deviceToken: user.generateDeviceJWT(req.body.user.devices.deviceName)
+      });
     user.devices.push({
         deviceName:req.body.user.devices.deviceName,
         deviceToken: user.generateDeviceJWT(req.body.user.devices.deviceName)
     });
     
     return user.save().then( () =>{
-      return res.status(201).json({user:{devices:user.toAuthDeviceJSON()}});
+      return res.status(201).json({user:{devices:user.toAuthDevicesJSON()}});
     });
   })
   .catch(next);
 });
 
 //PUT endpoint: a user needs to be able to update a tessel device token and/or name
+router.put('/user/:ID/tessel/:tesselID', auth.required, (req,res,next)=>{
+  let _user;
+  return User.findById(req.params.ID)
+    
+    .then((user)=>{
+      if(!user){ return res.sendStatus(401); }
+      _user = user;
+      return User.devices.id(req.params.tesselID);
+    })
+    .then((device)=>{
+      //to only update fields that were passed
+      if(!device){ return res.sendStatus(401); }
+      
+      if(typeof req.body.user.devices[0].deviceName !=="null"){
+        device.deviceName = req.body.user.devices[0].deviceName;
+      }
+      if(typeof req.body.user.devices[0].deviceToken !=="undefined"){
+        device.deviceToken = _user.generateDeviceJWT(req.body.user.devices[0].deviceName);
+      }
+      return user.save().then( () =>{
+        console.log("nested user: ", user);
+        let devicesArray = _user.toAuthDeviceJSON();
+
+        return res.status(201).json({user:{devices:_user.toAuthDeviceJSON()}});
+      });
+    })
+    .catch(next);
+});
+
+//DELETE endpoint: a user needs to be able to delete a tessel device token/tessel name
+router.delete('/user/:ID/tessel', auth.required, (req,res,next)=>{
+
+});
 
 
-
-
-
-
-
-//POST endpoint for the tessel to send requests to go get emails sent to the user
+//POST endpoint for the tessel to send requests to to go get emails sent to the user
 //req to server at this endpoint in this format:
 //req.body.payload
 router.post('/tessel/', auth.decrypt, (req,res,next) =>{
@@ -165,5 +197,7 @@ router.post('/tessel/', auth.decrypt, (req,res,next) =>{
   });
   res.sendStatus(200).send("The tessel touched the face of God!");
 });
+
+
 
 module.exports = router;
