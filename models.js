@@ -5,14 +5,13 @@ const jwt = require('jsonwebtoken');
 
 const {SECRET} = require('./config');
 
-
-
-
+//Device schema requires that the device name be unique and is required, is a child of the user schema
 const deviceSchema = mongoose.Schema({
   deviceName: {type: String, required: [true, "can't be blank"], unique: true},
   deviceToken: String
 }, {timestamps: true});
 
+//User schema is requires that usernames and emails are unique and required
 const userSchema = mongoose.Schema({
   username: {type: String, required: [true, "can't be blank"], index: true, unique: true},
   email: {type: String, required: [true, "can't be blank"], match: [/\S+@\S+\.\S+/, 'is invalid'], index: true, unique: true},
@@ -21,13 +20,13 @@ const userSchema = mongoose.Schema({
   devices: [deviceSchema]
 }, {timestamps: true});
 
-
-
+//Encrypts password via crypto before seeding into the database
 userSchema.methods.setPassword = function(password){
   this.salt = crypto.randomBytes(16).toString('hex');
   this.hash = crypto.pbkdf2Sync(password, this.salt, 10000, 512, 'sha512').toString('hex');
 };
 
+//Generates the token for a when a user logs in, creates, updates, or deletes a user
 userSchema.methods.generateJWT = function() {
   var today = new Date();
   var exp = new Date(today);
@@ -41,14 +40,7 @@ userSchema.methods.generateJWT = function() {
   }, SECRET);
 };
 
-
-
-userSchema.methods.validPassword = function (password, user){
-  return user.hash===crypto.pbkdf2Sync(password, user.salt, 10000, 512, 'sha512').toString('hex')
-};
-
-
-
+//Generates JSON to be sent to client when user info is created or updated or deleted
 userSchema.methods.toAuthJSON = function(){
   
   return {
@@ -58,37 +50,37 @@ userSchema.methods.toAuthJSON = function(){
   };
 };
 
+//Check when the user's password encrypts to the same hash when the same parameters are use, if true its the same password
+userSchema.methods.validPassword = function (password, user){
+  return user.hash===crypto.pbkdf2Sync(password, user.salt, 10000, 512, 'sha512').toString('hex')
+};
 
-
-userSchema.methods.generateDeviceJWT = function() {
+//Child schemas do not get their own instance methods, have to assign them to the parent
+//Generates a token for a device without an expiration date
+userSchema.methods.generateDeviceJWT = function(deviceName) {
     return jwt.sign({
-    id: this._id,
-    deviceName: this.deviceName 
+    userId: this._id,
+    deviceName: deviceName
   }, SECRET);
 };
 
-
-
+//Child schemas do not get their own instance methods, have to assign them to the parent
+//JSON to be sent to the client after a new device created or updated or deleted
 userSchema.methods.toAuthDeviceJSON = function(){
-  this.user.devices.forEach(function(device){
-    
+
+  return this.devices.map(function(device){
     return {
       deviceName: device.deviceName,
-      deviceToken: device.deviceToken
+      deviceToken: device.deviceToken,
+      deviceId: device._id
     };
-  });
+  },this);
 };
-/*
-deviceSchema.methods.generateNewDevice = function (deviceName){
-  return { 
-    token: this.generateDeviceJWT(),
-    deviceName: deviceName
-  };
-};
-*/
 
+//the unique validator plugin has to be added prior to assigning the schema to the const User, fyi
 userSchema.plugin(uniqueValidator);
-const User = mongoose.model('User', userSchema);
 
+//As of Mongoose v4.9.7, child schemas don't get assigned to their own model
+const User = mongoose.model('User', userSchema);
 
 module.exports = User;

@@ -234,7 +234,18 @@ it("PUT endpoint: a user needs to be able to update one's username, email, or pa
           .set("Authorization", `Bearer ${authenticatedToken}`)
           .send({user:{devices:{deviceName: "Garage door tessel"}}})
           .then(function(res){
-            console.log("tessel post: ", res);
+            res.should.have.status(201);
+            return User.findById(user.id);
+          })
+          .then(function(_user){
+            let created = _user.devices.filter(function(device){
+              return device.deviceName === "Garage door tessel";
+            });
+            created.length.should.be.at.least(1);
+            created[0].deviceName.should.be.a("string");
+            created[0].deviceToken.should.be.a("string");
+            //all tokens start with the "e" character
+            expect(created[0].deviceToken.charAt(0)).to.equal('e');
           });
     });
     it("PUT endpoint: a user needs to be able to update a tessel device token and/or name", function(){

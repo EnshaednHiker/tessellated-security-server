@@ -128,29 +128,38 @@ router.delete('/user/:ID', auth.required, (req,res,next)=>{
 
 //POST endpoint for user to set a tessel device token and tessel device name i.e. "Backdoor" or "Garage door"
 router.post('/user/:ID/tessel', auth.required, (req,res,next) =>{
-  let _user;
   
    return User.findById(req.params.ID)
   .then((user)=>{
-    console.log("Tessel Router Post: ", user);
     if(!user){ return res.sendStatus(401); }
     user.devices.push({
         deviceName:req.body.user.devices.deviceName,
-        deviceToken: user.generateDeviceJWT()
-      });
-
-      return user.save().then( () => {
-        return res.status(201).json({user:{devices:{[User.findById(req.params.ID).toAuthDeviceJSON()]}}});
+        deviceToken: user.generateDeviceJWT(req.body.user.devices.deviceName)
+    });
+    
+    return user.save().then( () =>{
+      return res.status(201).json({user:{devices:user.toAuthDeviceJSON()}});
     });
   })
   .catch(next);
 });
 
-//POST endpoint for the tessel to send requests to go get emails sent to the user
-router.post('/user/:ID/tessel/:tesselID', auth.required, (req,res,next) =>{
-  User.findById(req.params.ID).then((user)=>{
-    if(!user){ return res.sendStatus(401); }
+//PUT endpoint: a user needs to be able to update a tessel device token and/or name
 
+
+
+
+
+
+
+//POST endpoint for the tessel to send requests to go get emails sent to the user
+//req to server at this endpoint in this format:
+//req.body.payload
+router.post('/tessel/', auth.decrypt, (req,res,next) =>{
+  
+  User.findById(req.body.userId).then((user)=>{
+    if(!user){ return res.sendStatus(401); }
+    //might want to encrypt video data to send over on the tessel's end
 
 
   });
