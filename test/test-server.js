@@ -95,7 +95,7 @@ describe('Tessellated Security API', function() {
   describe('Users', function(){
     const dummyUser = {username: "scooby", email: "greatEmail@aol.com", password: "1234"};
     let authenticatedToken;
-
+    
     it('POST endpoint: a new user should be able to create an account', function(){
       
       
@@ -248,26 +248,47 @@ it("PUT endpoint: a user needs to be able to update one's username, email, or pa
             expect(created[0].deviceToken.charAt(0)).to.equal('e');
           });
     });
-    it("PUT endpoint: a user needs to be able to update a tessel device token and/or name", function(){
-        //this is the token that encrypts the credentials sent from client to server over the wire
+    it("GET endpoint: a user needs to be able to get all of the devices associated with its user account", function(){
+      //this is the token that encrypts the credentials sent from client to server over the wire
       let user = auth.jwt.verify(authenticatedToken, auth.secret);
-      let initialDeviceToken = user.devices[0].deviceToken;
-        //chai request to post the user's choice of deviceName and get back a token
         return chai.request(app)
-          .put(`/user/${user.id}/tessel/${user.devices[0].id}`)
+          .get(`/user/${user.id}/tessel`)
           .set("Authorization", `Bearer ${authenticatedToken}`)
-          .send({user:{devices:{deviceName: "Front door tessel"}}})
           .then(function(res){
-            res.should.have.status(201);
-            return User.devices.id(user.devices[0].id);
+            res.should.have.status(200);
+            expect(res.body).to.be.an("object");
+            console.log("GET response on tessel route: ",res.body)
           })
-          .then(function(_device){
-            expect(_device.deviceName).to.equal("Front door tessel")
-            expect(initialDeviceToken).to.not.equal(_device.deviceToken);
-            _device.deviceToken.should.be.a("string");
-            //all tokens start with the "e" character
-            expect(_device.deviceToken.charAt(0)).to.equal('e');
-          });
+
+    });
+    it("PUT endpoint: a user needs to be able to update a tessel device token and/or name", function(){
+      //this is the token that encrypts the credentials sent from client to server over the wire
+      let user = auth.jwt.verify(authenticatedToken, auth.secret);
+      //console.log("user: ",user)
+      
+      return User.findById(user.id)
+        .then(function(_user){
+          
+          return _user;
+        })
+        .then(function(_user){
+          let device = _user.devices[0]
+          //chai request to post the user's choice of deviceName and get back a token
+          return chai.request(app)
+            .put(`/user/${user.id}/tessel/${device._id}`)
+            .set("Authorization", `Bearer ${authenticatedToken}`)
+            .send({device:{deviceName: "Front door tessel"}})
+            .then(function(res){
+              res.should.have.status(201);
+              return _user.devices.id(device._id);
+            })
+            .then(function(_device){
+              expect(_device.deviceName).to.equal(device.deviceName)
+              _device.deviceToken.should.be.a("string");
+              //all tokens start with the "e" character
+              expect(_device.deviceToken.charAt(0)).to.equal('e');
+            });
+        })
     });
     it("DELETE endpoint: a user needs to be able to delete a tessel device token/tessel name", function(){
 

@@ -136,17 +136,23 @@ router.post('/user/:ID/tessel', auth.required, (req,res,next) =>{
           deviceName:req.body.user.devices.deviceName,
           deviceToken: user.generateDeviceJWT(req.body.user.devices.deviceName)
       });
-    user.devices.push({
-        deviceName:req.body.user.devices.deviceName,
-        deviceToken: user.generateDeviceJWT(req.body.user.devices.deviceName)
-    });
-    
     return user.save().then( () =>{
       return res.status(201).json({user:{devices:user.toAuthDevicesJSON()}});
     });
   })
   .catch(next);
 });
+
+//GET endpoint: a user needs to be able to get all of the devices associated with its user account
+router.get('/user/:ID/tessel', auth.required, (req,res,next) =>{
+  console.log("req.user: ",req.user);
+  return User.findById(req.params.ID)
+    .then((user)=>{
+      if(!user){ return res.sendStatus(401); }
+      return res.json({user:{devices:user.toAuthDevicesJSON()}});
+    });
+});
+
 
 //PUT endpoint: a user needs to be able to update a tessel device token and/or name
 router.put('/user/:ID/tessel/:tesselID', auth.required, (req,res,next)=>{
@@ -156,23 +162,18 @@ router.put('/user/:ID/tessel/:tesselID', auth.required, (req,res,next)=>{
     .then((user)=>{
       if(!user){ return res.sendStatus(401); }
       _user = user;
-      return User.devices.id(req.params.tesselID);
+      return user.devices.id(req.params.tesselID);
     })
     .then((device)=>{
       //to only update fields that were passed
-      if(!device){ return res.sendStatus(401); }
+      if(!device){ return res.status(404).send("404: device not found"); }
       
-      if(typeof req.body.user.devices[0].deviceName !=="null"){
-        device.deviceName = req.body.user.devices[0].deviceName;
+      if(req.body.device.deviceName){
+        device.deviceName = req.body.device.deviceName;
       }
-      if(typeof req.body.user.devices[0].deviceToken !=="undefined"){
-        device.deviceToken = _user.generateDeviceJWT(req.body.user.devices[0].deviceName);
-      }
-      return user.save().then( () =>{
-        console.log("nested user: ", user);
-        let devicesArray = _user.toAuthDeviceJSON();
-
-        return res.status(201).json({user:{devices:_user.toAuthDeviceJSON()}});
+      return _user.save().then( (user) =>{
+        
+        return res.status(201).json({device:_user.toAuthDeviceJSON(user.devices.id(device._id))});
       });
     })
     .catch(next);
@@ -180,6 +181,8 @@ router.put('/user/:ID/tessel/:tesselID', auth.required, (req,res,next)=>{
 
 //DELETE endpoint: a user needs to be able to delete a tessel device token/tessel name
 router.delete('/user/:ID/tessel', auth.required, (req,res,next)=>{
+//create a strong warning for the user so that they know that they will have to go through
+//have to through the CLI set up again
 
 });
 

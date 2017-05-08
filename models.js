@@ -77,7 +77,7 @@ userSchema.methods.toAuthDevicesJSON = function(){
   },this);
 };
 
-userSchema.methods.toAuthDeviceJSON = function(){
+userSchema.methods.toAuthDeviceJSON = function(device){
     return {
       deviceName: device.deviceName,
       deviceToken: device.deviceToken,
