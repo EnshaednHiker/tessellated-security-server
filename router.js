@@ -145,11 +145,10 @@ router.post('/user/:ID/tessel', auth.required, (req,res,next) =>{
 
 //GET endpoint: a user needs to be able to get all of the devices associated with its user account
 router.get('/user/:ID/tessel', auth.required, (req,res,next) =>{
-  console.log("req.user: ",req.user);
   return User.findById(req.params.ID)
     .then((user)=>{
       if(!user){ return res.sendStatus(401); }
-      return res.json({user:{devices:user.toAuthDevicesJSON()}});
+      return res.json({devices:user.toAuthDevicesJSON()});
     });
 });
 
@@ -183,7 +182,7 @@ router.put('/user/:ID/tessel/:tesselID', auth.required, (req,res,next)=>{
 router.delete('/user/:ID/tessel', auth.required, (req,res,next)=>{
 //create a strong warning for the user so that they know that they will have to go through
 //have to through the CLI set up again
-
+``
 });
 
 

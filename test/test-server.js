@@ -251,13 +251,18 @@ it("PUT endpoint: a user needs to be able to update one's username, email, or pa
     it("GET endpoint: a user needs to be able to get all of the devices associated with its user account", function(){
       //this is the token that encrypts the credentials sent from client to server over the wire
       let user = auth.jwt.verify(authenticatedToken, auth.secret);
+        
         return chai.request(app)
           .get(`/user/${user.id}/tessel`)
           .set("Authorization", `Bearer ${authenticatedToken}`)
           .then(function(res){
             res.should.have.status(200);
             expect(res.body).to.be.an("object");
-            console.log("GET response on tessel route: ",res.body)
+            expect(res.body.devices.length).to.be.above(0);
+            expect(res.body.devices[0].deviceName).to.equal("Garage door tessel")
+            res.body.devices[0].deviceToken.should.be.a("string");
+            //all tokens start with the "e" character
+            expect(res.body.devices[0].deviceToken.charAt(0)).to.equal('e');
           })
 
     });
