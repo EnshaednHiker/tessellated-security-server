@@ -179,10 +179,29 @@ router.put('/user/:ID/tessel/:tesselID', auth.required, (req,res,next)=>{
 });
 
 //DELETE endpoint: a user needs to be able to delete a tessel device token/tessel name
-router.delete('/user/:ID/tessel', auth.required, (req,res,next)=>{
+router.delete('/user/:ID/tessel/:tesselID', auth.required, (req,res,next)=>{
 //create a strong warning for the user so that they know that they will have to go through
 //have to through the CLI set up again
-``
+  let _user;
+  return User.findById(req.params.ID)
+    .then((user)=>{
+      if(!user){ return res.sendStatus(401); }
+      _user = user;
+      return user.devices.id(req.params.tesselID);
+    })
+    .then((device)=>{
+      if(!device){ return res.status(404).send("404: device not found"); }
+      return _user.devices.id(device._id).remove().then(function(){
+        return _user.save()
+      //User.findOneAndRemove({_id: device._id}).exec() 
+          .then( (user) =>{
+            return res.status(204).send({device: `Device was removed. ${device.deviceName} no longer exists. Furthermore, the device has been removed`+
+            `from the Tessellated Security servers. If you would like to use your tessel with our service in the future, you will have to redo the` + 
+            `authorization steps for adding a tessel to your account all over again.`});
+          });
+      });
+    })
+    .catch(next);
 });
 
 

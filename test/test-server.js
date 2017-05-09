@@ -7,6 +7,7 @@ const User = require('../models')
 
 const should = chai.should();
 const expect = chai.expect;
+const assert = chai.assert;
 
 const {app, runServer, closeServer} = require('../server');
 const {TEST_DATABASE_URL} = require('../config');
@@ -269,11 +270,8 @@ it("PUT endpoint: a user needs to be able to update one's username, email, or pa
     it("PUT endpoint: a user needs to be able to update a tessel device token and/or name", function(){
       //this is the token that encrypts the credentials sent from client to server over the wire
       let user = auth.jwt.verify(authenticatedToken, auth.secret);
-      //console.log("user: ",user)
-      
       return User.findById(user.id)
         .then(function(_user){
-          
           return _user;
         })
         .then(function(_user){
@@ -293,13 +291,32 @@ it("PUT endpoint: a user needs to be able to update one's username, email, or pa
               //all tokens start with the "e" character
               expect(_device.deviceToken.charAt(0)).to.equal('e');
             });
-        })
+        });
     });
-    it("DELETE endpoint: a user needs to be able to delete a tessel device token/tessel name", function(){
 
-    });
     it("POST endpoint: a user's tessel needs to be able to send req alerts through the user's email address",function(){
 
+    });
+    it("DELETE endpoint: a user needs to be able to delete a tessel device token/tessel name", function(){
+      //this is the token that encrypts the credentials sent from client to server over the wire
+      let user = auth.jwt.verify(authenticatedToken, auth.secret);
+      return User.findById(user.id)
+        .then(function(_user){
+          return _user;
+        })
+        .then(function(_user){
+          let device = _user.devices[0]
+          //chai request to post the user's choice of deviceName and get back a token
+          return chai.request(app)
+            .delete(`/user/${user.id}/tessel/${device._id}`)
+            .set("Authorization", `Bearer ${authenticatedToken}`)
+            .then(function(res){
+              res.should.have.status(204);
+              return User.findById(user.id).then(function(user){
+                user.devices.length.should.equal(0); 
+              });
+            });
+        });
     });
     it("DELETE endpoint: a user needs to be able to delete a user account", function(){
       let user = auth.jwt.verify(authenticatedToken, auth.secret);

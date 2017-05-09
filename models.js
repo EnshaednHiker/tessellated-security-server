@@ -7,7 +7,7 @@ const {SECRET} = require('./config');
 
 //Device schema requires that the device name be unique and is required, is a child of the user schema
 const deviceSchema = mongoose.Schema({
-  deviceName: {type: String, required: [true, "can't be blank"], unique: true},
+  deviceName: {type: String, required: [true, "can't be blank"]/*, unique: true*/},
   deviceToken: String
 }, {timestamps: true});
 
