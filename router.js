@@ -1,3 +1,4 @@
+require('dotenv').config();
 const bodyParser = require('body-parser');
 
 const express = require('express');
@@ -6,10 +7,14 @@ router.use(bodyParser.json());
 
 const passport = require('./passport');
 
-
+const nodemailer = require("nodemailer");
 
 const User = require('./models');
 const auth = require('./auth');
+const {USER,PASS} = require('./config');
+
+
+
 
 
 
@@ -210,13 +215,34 @@ router.delete('/user/:ID/tessel/:tesselID', auth.required, (req,res,next)=>{
 //req.body.payload
 router.post('/tessel/', auth.decrypt, (req,res,next) =>{
   
-  User.findById(req.body.userId).then((user)=>{
+  User.findById(req.payload.userId).then((user)=>{
     if(!user){ return res.sendStatus(401); }
     //might want to encrypt video data to send over on the tessel's end
+    let transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.USER,
+        pass: process.env.PASS
+      }
+    });
+    let mailOptions = {
+      from: `"Admin" <${process.env.USER}>`,
+      to: `${user.userName} <${user.userEmail}>`,
+      subject: `Alert: the ${req.payload.deviceName} tessel opened!`,
+      text: `Alert: the ${req.payload.deviceName} tessel opened! Possible intruder!`,
+      html: `<h1>Alert from Tessellated Security:</h1> <p>The ${req.payload.device.deviceName} tessel opened! Possible intruder!</p>`
+    };
+    transporter.sendMail(mailOptions,(error, info)=>{
+      if (error){
+        return console.log(error);
+      }
+      console.log('Message %s sent: %s', info.messageId, info.response);
+    });
 
-
-  });
-  res.sendStatus(200).send("The tessel touched the face of God!");
+  })
+  .then(()=>{
+    return res.sendStatus(201).send("The server forwarded the device's message on to the user.");
+  });  
 });
 
 

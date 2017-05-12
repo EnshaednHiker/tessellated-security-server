@@ -8,3 +8,7 @@ exports.TEST_DATABASE_URL = (
 	'mongodb://localhost/tessellatedSecurity');
 
 exports.SECRET = (process.env.SECRET || 'secret');
+
+exports.USER = process.env.USER;
+
+exports.PASS = process.env.PASS;

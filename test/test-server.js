@@ -295,7 +295,21 @@ it("PUT endpoint: a user needs to be able to update one's username, email, or pa
     });
 
     it("POST endpoint: a user's tessel needs to be able to send req alerts through the user's email address",function(){
-
+      let tesselToken;
+      let user = auth.jwt.verify(authenticatedToken, auth.secret);
+        return User.findById(user.id)
+          .then(function(_user){
+            return _user;
+          })
+          .then(function(_user){
+            tesselToken = _user.devices[0].deviceToken 
+      
+        return chai.request(app)
+          .post(`/tessel/`)
+          .set("Authorization", `Bearer ${tesselToken}`)
+          .then(function(res){
+            res.should.have.status(201);
+          })
     });
     it("DELETE endpoint: a user needs to be able to delete a tessel device token/tessel name", function(){
       //this is the token that encrypts the credentials sent from client to server over the wire
@@ -329,8 +343,9 @@ it("PUT endpoint: a user needs to be able to update one's username, email, or pa
         })
         .then(function(_user){
           should.not.exist(_user);
-        })
+        });
     });
   });
-
 });
+});
+
