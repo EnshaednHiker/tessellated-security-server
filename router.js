@@ -11,19 +11,16 @@ const nodemailer = require("nodemailer");
 
 const User = require('./models');
 const auth = require('./auth');
-const {USER,PASS} = require('./config');
 
 //sets up the options for the nodemailer transporter, allowing us to email users alerts
 let transporter = nodemailer.createTransport({
-  service: "Gmail",
+  service: "gmail",
   auth: {
-    user: process.env.USER,
-    pass: process.env.PASS,
-    type: login
+    user: `${process.env.USEREMAIL}`,
+    pass: `${process.env.PASS}`
   },
   logger: true,
-  debug: true,
-  secure: true
+  debug: true
 });
 
 //verifies connection configuration works
@@ -240,7 +237,7 @@ router.post('/tessel/', auth.decrypt, (req,res,next) =>{
     //might want to encrypt video data to send over on the tessel's end
 
     let mailOptions = {
-      from: `"Admin" <${process.env.USER}>`,
+      from: `"Admin" <${process.env.USEREMAIL}>`,
       to: `${user.userName} <${user.userEmail}>`,
       subject: `Alert: the ${req.body.deviceName} tessel opened!`,
       text: `Alert: the ${req.body.deviceName} tessel opened! Possible intruder!`,
@@ -249,7 +246,7 @@ router.post('/tessel/', auth.decrypt, (req,res,next) =>{
         id: `message failure for user: ${user._id}`,
         return: "headers",
         notify: ["failure","delay"],
-        recipient: `${process.env.USER}`
+        recipient: `Admin <${process.env.USEREMAIL}>`
       }
     };
     transporter.sendMail(mailOptions,(error, info)=>{

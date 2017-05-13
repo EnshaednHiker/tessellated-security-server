@@ -9,6 +9,3 @@ exports.TEST_DATABASE_URL = (
 
 exports.SECRET = (process.env.SECRET || 'secret');
 
-exports.USER = process.env.USER;
-
-exports.PASS = process.env.PASS;
