@@ -230,12 +230,13 @@ router.delete('/user/:ID/tessel/:tesselID', auth.required, (req,res,next)=>{
 //POST endpoint for the tessel to send requests to to go get emails sent to the user
 //req to server at this endpoint in this format:
 //req.body.payload
-router.post('/tessel/', auth.decrypt, (req,res,next) =>{
+router.post('/tessel', auth.decrypt, (req,res,next) =>{
   let message;
+  let _user;
   User.findById(req.body.userId).then((user)=>{
     if(!user){ return res.sendStatus(401); }
     //might want to encrypt video data to send over on the tessel's end
-
+    _user = user;
     let mailOptions = {
       from: `"Admin" <${process.env.USEREMAIL}>`,
       to: `${user.userName} <${user.userEmail}>`,
@@ -259,7 +260,7 @@ router.post('/tessel/', auth.decrypt, (req,res,next) =>{
 
   })
   .then(()=>{
-    return res.status(201).send(message);
+    return res.status(201).send({User: _user, Message: message});
   })
   .catch(next);  
 });
