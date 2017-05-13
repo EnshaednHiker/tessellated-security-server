@@ -215,7 +215,7 @@ router.delete('/user/:ID/tessel/:tesselID', auth.required, (req,res,next)=>{
 //req.body.payload
 router.post('/tessel/', auth.decrypt, (req,res,next) =>{
   
-  User.findById(req.payload.userId).then((user)=>{
+  User.findById(req.body.userId).then((user)=>{
     if(!user){ return res.sendStatus(401); }
     //might want to encrypt video data to send over on the tessel's end
     let transporter = nodemailer.createTransport({
@@ -228,9 +228,9 @@ router.post('/tessel/', auth.decrypt, (req,res,next) =>{
     let mailOptions = {
       from: `"Admin" <${process.env.USER}>`,
       to: `${user.userName} <${user.userEmail}>`,
-      subject: `Alert: the ${req.payload.deviceName} tessel opened!`,
-      text: `Alert: the ${req.payload.deviceName} tessel opened! Possible intruder!`,
-      html: `<h1>Alert from Tessellated Security:</h1> <p>The ${req.payload.device.deviceName} tessel opened! Possible intruder!</p>`
+      subject: `Alert: the ${req.body.deviceName} tessel opened!`,
+      text: `Alert: the ${req.body.deviceName} tessel opened! Possible intruder!`,
+      html: `<h1>Alert from Tessellated Security:</h1> <p>The ${req.body.deviceName} tessel opened! Possible intruder!</p>`
     };
     transporter.sendMail(mailOptions,(error, info)=>{
       if (error){
