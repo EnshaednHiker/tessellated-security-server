@@ -255,12 +255,12 @@ router.post('/tessel', auth.decrypt, (req,res,next) =>{
         return console.log(error);
       }
       console.log('Message %s sent: %s', info.messageId, info.response);
-      message = `Message ID: ${info.messageId}, Response: ${info.response}`
+      message = `Message ${info.messageId} sent: ${info.response}`;
     });
 
   })
   .then(()=>{
-    return res.status(201).send({User: _user, Message: message});
+    return res.status(201).send({Message: message});
   })
   .catch(next);  
 });
