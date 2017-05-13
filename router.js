@@ -239,7 +239,7 @@ router.post('/tessel', auth.decrypt, (req,res,next) =>{
     _user = user;
     let mailOptions = {
       from: `"Admin" <${process.env.USEREMAIL}>`,
-      to: `${user.userName} <${user.userEmail}>`,
+      to: `${user.username} <${user.email}>`,
       subject: `Alert: the ${req.body.deviceName} tessel opened!`,
       text: `Alert: the ${req.body.deviceName} tessel opened! Possible intruder!`,
       html: `<h1>Alert from Tessellated Security:</h1> <p>The ${req.body.deviceName} tessel opened! Possible intruder!</p>`,
