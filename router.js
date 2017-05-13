@@ -214,7 +214,7 @@ router.delete('/user/:ID/tessel/:tesselID', auth.required, (req,res,next)=>{
 //req to server at this endpoint in this format:
 //req.body.payload
 router.post('/tessel/', auth.decrypt, (req,res,next) =>{
-  
+  let message;
   User.findById(req.body.userId).then((user)=>{
     if(!user){ return res.sendStatus(401); }
     //might want to encrypt video data to send over on the tessel's end
@@ -237,12 +237,14 @@ router.post('/tessel/', auth.decrypt, (req,res,next) =>{
         return console.log(error);
       }
       console.log('Message %s sent: %s', info.messageId, info.response);
+      message = `Message ID: ${info.messageId}, Response: ${info.response}`
     });
 
   })
   .then(()=>{
-    return res.status(201).send("The server forwarded the device's message on to the user.");
-  });  
+    return res.status(201).send(message);
+  })
+  .catch(next);  
 });
 
 
