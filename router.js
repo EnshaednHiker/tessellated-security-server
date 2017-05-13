@@ -231,8 +231,7 @@ router.delete('/user/:ID/tessel/:tesselID', auth.required, (req,res,next)=>{
 //req to server at this endpoint in this format:
 //req.body.payload
 router.post('/tessel', auth.decrypt, (req,res,next) =>{
-  let message;
-  let _user;
+  
   User.findById(req.body.userId).then((user)=>{
     if(!user){ return res.sendStatus(401); }
     //might want to encrypt video data to send over on the tessel's end
@@ -250,17 +249,19 @@ router.post('/tessel', auth.decrypt, (req,res,next) =>{
         recipient: `Admin <${process.env.USEREMAIL}>`
       }
     };
+    let message;
     transporter.sendMail(mailOptions,(error, info)=>{
       if (error){
         return console.log(error);
       }
       console.log('Message %s sent: %s', info.messageId, info.response);
       message = `Message ${info.messageId} sent: ${info.response}`;
+      
     });
-
+    return message;
   })
-  .then(()=>{
-    return res.status(201).send({Message: message});
+  .then((message)=>{
+    return res.status(201).json({serverMessage: message});
   })
   .catch(next);  
 });
