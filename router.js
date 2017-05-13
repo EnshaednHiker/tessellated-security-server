@@ -241,7 +241,7 @@ router.post('/tessel/', auth.decrypt, (req,res,next) =>{
 
   })
   .then(()=>{
-    return res.sendStatus(201).send("The server forwarded the device's message on to the user.");
+    return res.status(201).send("The server forwarded the device's message on to the user.");
   });  
 });
 
