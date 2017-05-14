@@ -214,8 +214,7 @@ router.delete('/user/:ID/tessel/:tesselID', auth.required, (req,res,next)=>{
     .then((device)=>{
       if(!device){ return res.status(404).send("404: device not found"); }
       return _user.devices.id(device._id).remove().then(function(){
-        return _user.save()
-      //User.findOneAndRemove({_id: device._id}).exec() 
+        return _user.save() 
           .then( (user) =>{
             return res.status(204).send({device: `Device was removed. ${device.deviceName} no longer exists. Furthermore, the device has been removed`+
             `from the Tessellated Security servers. If you would like to use your tessel with our service in the future, you will have to redo the` + 
@@ -228,10 +227,7 @@ router.delete('/user/:ID/tessel/:tesselID', auth.required, (req,res,next)=>{
 
 
 //POST endpoint for the tessel to send requests to to go get emails sent to the user
-//req to server at this endpoint in this format:
-//req.body.payload
 router.post('/tessel', auth.decrypt, (req,res,next) =>{
-  
   User.findById(req.body.userId).then((user)=>{
     if(!user){ return res.sendStatus(401); }
     //might want to encrypt video data to send over on the tessel's end
@@ -255,10 +251,8 @@ router.post('/tessel', auth.decrypt, (req,res,next) =>{
         return console.log(error);
       }
       console.log('Message %s sent: %s', info.messageId, info.response);
-      message = `Message ${info.messageId} sent: ${info.response}`;
-      
+      return message = `Message ${info.messageId} sent: ${info.response}`; 
     });
-    return message;
   })
   .then((message)=>{
     return res.status(201).json({serverMessage: message});
