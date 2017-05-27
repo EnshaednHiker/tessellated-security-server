@@ -126,6 +126,10 @@ describe('Tessellated Security API', function() {
             "password": "abcd1234"
         }
       };
+      errorCheck = {
+        name:"ValidatorError",
+        kind: "unique"
+      }
 
       let payload = auth.encrypt(duplicativeUser);
         return chai.request(app)
@@ -136,14 +140,14 @@ describe('Tessellated Security API', function() {
             error = JSON.parse(err.response.error.text);
            //should assertions testing that an already registered user cannot make an account
             err.should.have.status(500);
-            error.errors.email.name.should.equal("ValidatorError");
-            error.errors.email.kind.should.equal("unique");
+            error.errors.email.name.should.equal(errorCheck.name);
+            error.errors.email.kind.should.equal(errorCheck.kind);
             error.errors.email.path.should.equal("email");
-            error.errors.email.value.should.equal("tesseluser40@gmail.com");
-            error.errors.username.name.should.equal("ValidatorError");
-            error.errors.username.kind.should.equal("unique");
+            error.errors.email.value.should.equal(duplicativeUser.user.email);
+            error.errors.username.name.should.equal(errorCheck.name);
+            error.errors.username.kind.should.equal(errorCheck.kind);
             error.errors.username.path.should.equal("username");
-            error.errors.username.value.should.equal("user40");
+            error.errors.username.value.should.equal(duplicativeUser.user.username);
             error.name.should.equal('ValidationError');
           });
         
