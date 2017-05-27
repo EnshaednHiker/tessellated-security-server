@@ -33,6 +33,7 @@ transporter.verify(function(error, success){
   }
 });
 
+
 //put this in server, placed before pulling in or declaring any routes to all cross origin requests
 router.all('*', function(req, res, next) {
     res.header('Access-Control-Allow-Credentials', true);
