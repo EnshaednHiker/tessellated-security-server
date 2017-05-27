@@ -25,27 +25,31 @@ chai.use(chaiHttp);
 function seedUserData() {
   console.info('seeding User data');
   const dummyUsers = [
-    {
-      username: 'user40',
-      email: "tesseluser40@gmail.com",
-      password: "abcd1234"
+    {"user":{
+        username: 'user40',
+        email: "tesseluser40@gmail.com",
+        password: "abcd1234"
+      }
     },
-    {
-      username: 'bigdaddy',
-      email: "tesselpapatessel@gmail.com",
-      password: "efgh5678"
+    {"user":{
+        username: 'bigdaddy',
+        email: "tesselpapatessel@gmail.com",
+        password: "efgh5678"
+      }
     },
-    {
-      username: 'thetesselation',
-      email: "tesselthetesselation@gmail.com",
-      password: "ijkl9101112"
+    {"user":{
+        username: 'thetesselation',
+        email: "tesselthetesselation@gmail.com",
+        password: "ijkl9101112"
+      }
     }
   ]
   dummyUsers.forEach(function(User){
+    let payload = auth.encrypt(User);
       return chai.request(app)
         .post('/users')
         .set("Content-Type", "application/json")
-        .send({user:User})
+        .send({"payload":payload})
         .then((res) => console.info("seeded user: ", res.body.user.username));
   });
   //return User.insertMany(dummyUsers);
@@ -60,11 +64,6 @@ function tearDownDb() {
     console.warn('Deleting database');
     return mongoose.connection.dropDatabase();
 }
-
-
-
-
-
 
 describe('Tessellated Security API', function() {
   before(function() {
@@ -155,6 +154,7 @@ describe('Tessellated Security API', function() {
         .set("Content-Type", "application/json")
         .send({payload:tokenPayload})
         .then(function(res){
+          
           //this is an authentication token that gets created after we've successfully logged in, will be reused in protected endpoint tests for testing when a user is logged in
           authenticatedToken = res.body.user.token;
           //make more assertions, confirm username, email, and token are all being sent
@@ -233,7 +233,7 @@ it("PUT endpoint: a user needs to be able to update one's username, email, or pa
         return chai.request(app)
           .post(`/user/${user.id}/tessel`)
           .set("Authorization", `Bearer ${authenticatedToken}`)
-          .send({user:{devices:{deviceName: "Garage door tessel"}}})
+          .send({deviceName: "Garage door tessel"})
           .then(function(res){
             res.should.have.status(201);
             return User.findById(user.id);

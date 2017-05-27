@@ -13,8 +13,8 @@ function getTokenFromHeader(req){
 
 function decrypt (req,res,next){
    try{
-    console.log("req.body: ", req.body);
-    console.log("req.headers: ", req.headers); 
+    //console.log("req.body: ", req.body);
+    //console.log("req.headers: ", req.headers); 
     req.body = token.verify(req.body.payload, SECRET);
     next();
    }catch(err){

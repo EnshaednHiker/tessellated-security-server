@@ -81,7 +81,7 @@ request body from form needs to be in this format:
 
 
 //endpoint creating new users i.e. registering with the site
-router.post('/users', (req,res,next) => {
+router.post('/users', auth.decrypt, (req,res,next) => {
   let user = new User();
   user.username = req.body.user.username;
   user.email = req.body.user.email;
@@ -105,6 +105,7 @@ router.post('/users/login', auth.decrypt, (req,res,next) => {
   passport.authenticate("local", {session: false},  (err,user,info) => {
     if(err){ return next(err);}
     if(user){
+      //authorization token
       user.token = user.generateJWT();
       
       return res.status(201).json({user: user.toAuthJSON()});
@@ -168,8 +169,8 @@ router.post('/user/:ID/tessel', auth.required, (req,res,next) =>{
     .then((user)=>{
       if(!user){ return res.sendStatus(401); }
       user.devices.push({
-          deviceName:req.body.user.devices.deviceName,
-          deviceToken: user.generateDeviceJWT(req.body.user.devices.deviceName)
+          deviceName:req.body.deviceName,
+          deviceToken: user.generateDeviceJWT(req.body.deviceName)
       });
     return user.save().then( () =>{
       return res.status(201).json({user:{devices:user.toAuthDevicesJSON()}});
