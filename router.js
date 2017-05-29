@@ -86,8 +86,7 @@ router.post('/users', auth.decrypt, (req,res,next) => {
   user.username = req.body.user.username;
   user.email = req.body.user.email;
   user.setPassword(req.body.user.password);
-  user
-  .save()
+  user.save()
   .then(() => res.status(201).json({user: user.toAuthJSON()}))
   .catch(err => res.status(500).send(err));
 });
