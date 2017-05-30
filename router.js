@@ -75,10 +75,8 @@ request body from form needs to be in this format:
 */
 
 //endpoint to serve the index.html
-// router.get("/", (req,res,next) => {
-
-// });
-
+router.get("/", (req,res,next) => {
+});
 
 //endpoint creating new users i.e. registering with the site
 router.post('/users', auth.decrypt, (req,res,next) => {
