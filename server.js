@@ -4,11 +4,11 @@ const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 
 const morgan = require('morgan');
-
+const path = require('path');
 
 const app = express();
 
-app.use(express.static('public'));
+app.use('/static', express.static(path.join(__dirname, 'public')))
 
 
 const {PORT, DATABASE_URL} = require('./config');

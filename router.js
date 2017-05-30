@@ -156,11 +156,6 @@ router.delete('/user/:ID', auth.required, (req,res,next)=>{
   .catch(next);
 });
 
-
-//try to get tessel to talk to server with a get
-//viable NPM packages according to Ken: request, request-promise, superagent
-
-
 //POST endpoint for user to set a tessel device token and tessel device name i.e. "Backdoor" or "Garage door"
 router.post('/user/:ID/tessel', auth.required, (req,res,next) =>{
   
