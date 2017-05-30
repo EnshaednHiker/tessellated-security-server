@@ -8,7 +8,7 @@ const path = require('path');
 
 const app = express();
 
-app.use('/static', express.static(path.join(__dirname, 'public')))
+app.use(express.static('public'));
 
 
 const {PORT, DATABASE_URL} = require('./config');
