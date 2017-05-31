@@ -75,16 +75,16 @@ describe('Tessellated Security API', function() {
      return closeServer();
   })
 
-  describe('Serving Static Files', function() {
+  // describe('Serving Static Files', function() {
 
-    it('GET endpoint: a user should be able to visit the index.html', function() {
-      return chai.request(app)
-        .get('/')
-        .then(function(res) {
-          expect(res).to.have.status(200);
-        })
-    });
-  });
+  //   it('GET endpoint: a user should be able to visit the index.html', function() {
+  //     return chai.request(app)
+  //       .get('/')
+  //       .then(function(res) {
+  //         expect(res).to.have.status(200);
+  //       })
+  //   });
+  // });
   describe('Users', function(){
     const dummyUser = {
       "user":{

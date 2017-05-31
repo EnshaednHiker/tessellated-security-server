@@ -8,9 +8,6 @@ const path = require('path');
 
 const app = express();
 
-app.use(express.static('public'));
-
-
 const {PORT, DATABASE_URL} = require('./config');
 
 const router = require('./router');
