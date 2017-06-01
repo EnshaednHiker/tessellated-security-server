@@ -14,7 +14,7 @@ const router = require('./router');
 
 app.use(morgan('common'));
 
-app.use('/', router);
+app.use("/",router);
 
 let server;
 
