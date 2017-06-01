@@ -13,8 +13,8 @@ const deviceSchema = mongoose.Schema({
 
 //User schema is requires that usernames and emails are unique and required
 const userSchema = mongoose.Schema({
-  username: {type: String, required: [true, "can't be blank"], index: true, unique: true},
-  email: {type: String, required: [true, "can't be blank"], match: [/\S+@\S+\.\S+/, 'is invalid'], index: true, unique: true},
+  username: {type: String, required: [true, "can't be blank"], unique: true},
+  email: {type: String, required: [true, "can't be blank"], match: [/\S+@\S+\.\S+/, 'is invalid'], unique: true},
   hash: String,
   salt: String,
   devices: [deviceSchema]
