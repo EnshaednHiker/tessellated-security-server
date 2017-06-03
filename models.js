@@ -57,10 +57,11 @@ userSchema.methods.validPassword = function (password, user){
 
 //Child schemas do not get their own instance methods, have to assign them to the parent
 //Generates a token for a device without an expiration date
-userSchema.methods.generateDeviceJWT = function(deviceName) {
+userSchema.methods.generateDeviceJWT = function(deviceName,deviceId) {
     return jwt.sign({
     userId: this._id,
-    deviceName: deviceName
+    deviceName: deviceName,
+    deviceId: deviceId
   }, SECRET);
 };
 

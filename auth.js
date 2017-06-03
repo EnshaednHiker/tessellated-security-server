@@ -11,11 +11,16 @@ function getTokenFromHeader(req){
   return null;
 }
 
+function decryptToken(vanillaToken){
+  return token.verify(vanillaToken,SECRET);
+}
+
 function decrypt (req,res,next){
    try{
-    //console.log("req.body: ", req.body);
+    
     //console.log("req.headers: ", req.headers); 
     req.body = token.verify(req.body.payload, SECRET);
+    //console.log("req.body: ", req.body);
     next();
    }catch(err){
     res.status(500).send(`Error decrypting token: ${err}`);
@@ -46,7 +51,8 @@ const auth = {
   decrypt: decrypt,
   encrypt: encrypt,
   jwt: token,
-  secret: SECRET  
+  secret: SECRET,
+  decryptToken: decryptToken  
 };
 
 module.exports = auth;

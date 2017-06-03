@@ -46,7 +46,6 @@ function seedUserData() {
         .send({"payload":payload})
         .then((res) => console.info("seeded user: ", res.body.user.username));
   });
-  //return User.insertMany(dummyUsers);
 }
 
 // this function deletes the entire database.
@@ -75,16 +74,6 @@ describe('Tessellated Security API', function() {
      return closeServer();
   })
 
-  // describe('Serving Static Files', function() {
-
-  //   it('GET endpoint: a user should be able to visit the index.html', function() {
-  //     return chai.request(app)
-  //       .get('/')
-  //       .then(function(res) {
-  //         expect(res).to.have.status(200);
-  //       })
-  //   });
-  // });
   describe('Users', function(){
     const dummyUser = {
       "user":{
@@ -93,7 +82,8 @@ describe('Tessellated Security API', function() {
         "password": "1234"
       }
     };
-    let authenticatedToken; 
+    let authenticatedToken;
+    let deviceTokenTestDelete; 
     it('POST endpoint: a new user should be able to create an account', function(){
     let payload = auth.encrypt(dummyUser);  
       
@@ -180,13 +170,6 @@ describe('Tessellated Security API', function() {
           expect(decryptedResponseToken.exp).to.be.above(decryptedResponseToken.iat);
         })
     });
-    it('GET endpoint: a user needs to get the user\'s auth payload from their token', function(){
-      //this is the token that encrypts the credentials sent from client to server over the wire
-      let user = auth.jwt.verify(authenticatedToken, auth.secret);
-      //chai request to to get user's auth
-
-
-    });
     it("PUT endpoint: a user needs to be able to update one's username, email, or password to new credentials", function(){
       
       let userNewCredentials =  {
@@ -213,7 +196,7 @@ describe('Tessellated Security API', function() {
           expect(_user.validPassword(userNewCredentials.password, _user)).to.be.true;
         });
     });
-it("PUT endpoint: a user needs to be able to update one's username, email, or password to old credentials", function(){
+    it("PUT endpoint: a user needs to be able to update one's username, email, or password to old credentials", function(){
       let userOldCredentials = {
           username: 'user40',
           password: "abcd1234",
@@ -249,6 +232,7 @@ it("PUT endpoint: a user needs to be able to update one's username, email, or pa
           .send({deviceName: "Garage door tessel"})
           .then(function(res){
             res.should.have.status(201);
+            deviceTokenTestDelete = res.body.user.devices[0].deviceToken;
             return User.findById(user.id);
           })
           .then(function(_user){
@@ -280,9 +264,16 @@ it("PUT endpoint: a user needs to be able to update one's username, email, or pa
           })
 
     });
+    /*
+    //Not using the PUT endpoint at this time, commenting out this test code
     it("PUT endpoint: a user needs to be able to update a tessel device token and/or name", function(){
       //this is the token that encrypts the credentials sent from client to server over the wire
       let user = auth.jwt.verify(authenticatedToken, auth.secret);
+      let updatedDevice = {
+        device:{
+          deviceName: "Front door tessel"
+        }
+      }
       return User.findById(user.id)
         .then(function(_user){
           return _user;
@@ -293,29 +284,52 @@ it("PUT endpoint: a user needs to be able to update one's username, email, or pa
           return chai.request(app)
             .put(`/user/${user.id}/tessel/${device._id}`)
             .set("Authorization", `Bearer ${authenticatedToken}`)
-            .send({device:{deviceName: "Front door tessel"}})
+            .send(updatedDevice)
             .then(function(res){
+
               res.should.have.status(201);
-              return _user.devices.id(device._id);
-            })
-            .then(function(_device){
+              console.log("what's the res body look like?",res.body);
+              queriedDevice = _user.devices.id(device.deviceId);
+              console.log("how does the queriedDevice look in the database?",queriedDevice);
+              console.log("making sure deviceName made it into token in response",auth.decryptToken(res.body.device.deviceToken));
+              deviceTokenTestDelete = _device.deviceToken;
+              
               expect(_device.deviceName).to.equal(device.deviceName)
               _device.deviceToken.should.be.a("string");
               //all tokens start with the "e" character
               expect(_device.deviceToken.charAt(0)).to.equal('e');
+              expect(auth.decryptToken(_device.deviceToken).deviceName).to.equal(device.deviceName);
+              expect(auth.decryptToken(_device.deviceToken).deviceId).to.equal(device._id.toString());
+              expect(auth.decryptToken(_device.deviceToken).userId).to.equal(device.userId.toString());
+
+              return _user.devices.id(device._id);
+            })
+            .then(function(_device){
+              console.log(_device);
+              console.log("making sure deviceName made it into token",auth.decryptToken(_device.deviceToken));
+              deviceTokenTestDelete = _device.deviceToken;
+              
+              expect(_device.deviceName).to.equal(device.deviceName)
+              _device.deviceToken.should.be.a("string");
+              //all tokens start with the "e" character
+              expect(_device.deviceToken.charAt(0)).to.equal('e');
+              expect(auth.decryptToken(_device.deviceToken).deviceName).to.equal(device.deviceName);
+              expect(auth.decryptToken(_device.deviceToken).deviceId).to.equal(device._id.toString());
+              expect(auth.decryptToken(_device.deviceToken).userId).to.equal(device.userId.toString());
             });
         });
     });
-
+    */
     it("POST endpoint: a user's tessel needs to be able to send req alerts through the user's email address",function(){
       let tesselToken;
+      
       let user = auth.jwt.verify(authenticatedToken, auth.secret);
         return User.findById(user.id)
           .then(function(_user){
             return _user;
           })
           .then(function(_user){
-            tesselToken = _user.devices[0].deviceToken 
+            tesselToken = _user.devices[0].deviceToken;
             return chai.request(app)
               .post(`/tessel`)
               .set("Authorization", `Bearer ${tesselToken}`)
@@ -347,6 +361,20 @@ it("PUT endpoint: a user needs to be able to update one's username, email, or pa
             });
         });
     });
+    it("POST endpoint: a user's tessel should not be able to send email requests if it's been deleted", function(){
+            return chai.request(app)
+              .post(`/tessel`)
+              .set("Authorization", `Bearer ${deviceTokenTestDelete}`)
+              .send({payload: deviceTokenTestDelete})
+              .then(function(res){
+                res.should.have.status(404);
+              })
+              .catch(function(err){
+                err.should.have.status(404);
+              })
+  
+    });
+
     it("DELETE endpoint: a user needs to be able to delete a user account", function(){
       let user = auth.jwt.verify(authenticatedToken, auth.secret);
       return chai.request(app)

@@ -160,15 +160,16 @@ router.post('/user/:ID/tessel', auth.required, (req,res,next) =>{
   return User.findById(req.params.ID)
     .then((user)=>{
       if(!user){ return res.sendStatus(401); }
-      user.devices.push({
-          deviceName:req.body.deviceName,
-          deviceToken: user.generateDeviceJWT(req.body.deviceName)
+      let device = user.devices.create({
+          deviceName:req.body.deviceName    
       });
-    return user.save().then( () =>{
-      return res.status(201).json({user:{devices:user.toAuthDevicesJSON()}});
-    });
-  })
-  .catch(next);
+      device["deviceToken"] = user.generateDeviceJWT(req.body.deviceName, device._id);
+      user.devices.addToSet(device);
+      return user.save().then( () =>{
+        return res.status(201).json({user:{devices:user.toAuthDevicesJSON()}});
+      });
+    })
+    .catch(next);
 });
 
 //GET endpoint: a user needs to be able to get all of the devices associated with its user account
@@ -182,10 +183,10 @@ router.get('/user/:ID/tessel', auth.required, (req,res,next) =>{
 
 
 //PUT endpoint: a user needs to be able to update a tessel device token and/or name
+//this endpoint is currently not used but saved for future development
 router.put('/user/:ID/tessel/:tesselID', auth.required, (req,res,next)=>{
   let _user;
   return User.findById(req.params.ID)
-    
     .then((user)=>{
       if(!user){ return res.sendStatus(401); }
       _user = user;
@@ -197,9 +198,9 @@ router.put('/user/:ID/tessel/:tesselID', auth.required, (req,res,next)=>{
       
       if(req.body.device.deviceName){
         device.deviceName = req.body.device.deviceName;
+        device.deviceToken = _user.generateDeviceJWT(req.body.device.deviceName, device._id);
       }
       return _user.save().then( (user) =>{
-        
         return res.status(201).json({device:_user.toAuthDeviceJSON(user.devices.id(device._id))});
       });
     })
@@ -234,36 +235,53 @@ router.delete('/user/:ID/tessel/:tesselID', auth.required, (req,res,next)=>{
 
 //POST endpoint for the tessel to send requests to to go get emails sent to the user
 router.post('/tessel', auth.decrypt, (req,res,next) =>{
-  User.findById(req.body.userId).then((user)=>{
-    if(!user){ return res.sendStatus(401); }
-    //might want to encrypt video data to send over on the tessel's end
-    _user = user;
-    let mailOptions = {
-      from: `"Admin" <${process.env.USEREMAIL}>`,
-      to: `${user.username} <${user.email}>`,
-      subject: `Alert: the ${req.body.deviceName} tessel opened!`,
-      text: `Alert: the ${req.body.deviceName} tessel opened! Possible intruder!`,
-      html: `<h1>Alert from Tessellated Security:</h1> <p>The ${req.body.deviceName} tessel opened! Possible intruder!</p>`,
-      dsn:{
-        id: `message failure for user: ${user._id}`,
-        return: "headers",
-        notify: ["failure","delay"],
-        recipient: `Admin <${process.env.USEREMAIL}>`
-      }
-    };
-    let message;
-    transporter.sendMail(mailOptions,(error, info)=>{
-      if (error){
-        return console.log(error);
-      }
-      console.log('Message %s sent: %s', info.messageId, info.response);
-      return message = `Message ${info.messageId} sent: ${info.response}`; 
-    });
-  })
-  .then((message)=>{
-    return res.status(201).json({serverMessage: message});
-  })
-  .catch(next);  
+  let _user;
+  return User.findById(req.body.userId)
+    .then((user)=>{
+        _user = user;
+        return new Promise ((resolve, reject)=>{
+          if(!user){ 
+              reject(res.sendStatus(401));
+               
+            }
+          else if (user.devices.id(req.body.deviceId)===null){
+              reject(res.status(404).send("404: Device not found")); 
+          }
+          else {
+              resolve(user.devices.id(req.body.deviceId));
+          }
+        })
+        .then((device)=>{
+          let mailOptions = {
+            from: `"Admin" <${process.env.USEREMAIL}>`,
+            to: `${_user.username} <${_user.email}>`,
+            subject: `Alert: the ${req.body.deviceName} opened!`,
+            text: `Alert: the ${req.body.deviceName} opened! Possible intruder!`,
+            html: `<h1>Alert from Tessellated Security:</h1> <p>The ${req.body.deviceName} opened! Possible intruder!</p>`,
+            dsn:{
+              id: `message failure for user: ${_user._id}`,
+              return: "headers",
+              notify: ["failure","delay"],
+              recipient: `Admin <${process.env.USEREMAIL}>`
+            }
+          };
+          let message;
+          return new Promise((resolve, reject)=>{
+            transporter.sendMail(mailOptions,(error, info)=>{
+              if (error){
+                reject(error);
+              }
+              console.log('Message %s sent: %s', info.messageId, info.response);
+              resolve(message = `Message ${info.messageId} sent: ${info.response}`); 
+            });
+          });
+        })
+        .then((message)=>{
+          return res.status(201).json({serverMessage: message});
+        })
+        .catch(next);
+    })
+    .catch(next);  
 });
 
 
