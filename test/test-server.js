@@ -371,7 +371,7 @@ describe('Tessellated Security API', function() {
               })
               .catch(function(err){
                 err.should.have.status(404);
-              })
+              });
   
     });
 
