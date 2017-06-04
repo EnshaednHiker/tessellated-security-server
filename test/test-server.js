@@ -12,6 +12,31 @@ const assert = chai.assert;
 const {app, runServer, closeServer} = require('../server');
 const {TEST_DATABASE_URL} = require('../config');
 chai.use(chaiHttp);
+const nodemailer = require("nodemailer");
+
+function testNodeMailer(){
+  
+    //sets up the options for the nodemailer transporter, allowing us to email users alerts
+    let transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: `${process.env.USEREMAIL}`,
+        pass: `${process.env.PASS}`
+      },
+      logger: true,
+      debug: true
+    });
+
+    //verifies connection configuration works
+      return transporter.verify(function(error, success){
+        if (error){
+          console.log("transporter error: ", error);
+        }
+        else {
+          console.log("Transporter success: ", success);
+        }
+      });
+}
 
 // generate an object representing a user.
 // can be used to generate seed data for db
@@ -58,6 +83,10 @@ function tearDownDb() {
 }
 
 describe('Tessellated Security API', function() {
+  before(function(){
+    return testNodeMailer();
+  })
+  
   before(function() {
     return runServer(TEST_DATABASE_URL);
   });

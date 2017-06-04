@@ -22,17 +22,7 @@ let transporter = nodemailer.createTransport({
   logger: true,
   debug: true
 });
-/*
-//verifies connection configuration works
-transporter.verify(function(error, success){
-  if (error){
-    console.log("transporter error: ", error);
-  }
-  else {
-    console.log("Transporter success: ", success);
-  }
-});
-*/
+
 //put this in server, placed before pulling in or declaring any routes to all cross origin requests
 router.all('*', function(req, res, next) {
     res.header('Access-Control-Allow-Credentials', true);
