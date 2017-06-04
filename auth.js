@@ -17,10 +17,7 @@ function decryptToken(vanillaToken){
 
 function decrypt (req,res,next){
    try{
-    
-    //console.log("req.headers: ", req.headers); 
     req.body = token.verify(req.body.payload, SECRET);
-    //console.log("req.body: ", req.body);
     next();
    }catch(err){
     res.status(500).send(`Error decrypting token: ${err}`);

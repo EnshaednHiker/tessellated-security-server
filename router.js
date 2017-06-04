@@ -246,8 +246,8 @@ router.post('/tessel', auth.decrypt, (req,res,next) =>{
             from: `"Admin" <${process.env.USEREMAIL}>`,
             to: `${_user.username} <${_user.email}>`,
             subject: `Alert: the ${req.body.deviceName} opened!`,
-            text: `Alert: the ${req.body.deviceName} opened! Possible intruder!`,
-            html: `<h1>Alert from Tessellated Security:</h1> <p>The ${req.body.deviceName} opened! Possible intruder!</p>`,
+            text: `Alert: the ${req.body.deviceName} opened!`,
+            html: `<h1>Alert from Tessellated Security:</h1> <p>The ${req.body.deviceName} opened!</p>`,
             dsn:{
               id: `message failure for user: ${_user._id}`,
               return: "headers",

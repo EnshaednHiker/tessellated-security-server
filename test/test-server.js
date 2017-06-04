@@ -121,9 +121,7 @@ describe('Tessellated Security API', function() {
         .set("Content-Type", "application/json")
         .send({payload: payload})
         .then(function(res){
-          //console.log(res.body);
           res.should.have.status(201);
-          //res.body.should.be.json;
           res.body.should.be.a('object');
           res.body.user.username.should.equal(dummyUser.user.username);
           res.body.user.email.should.equal(dummyUser.user.email);
