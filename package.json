@@ -16,7 +16,7 @@
     "url": "git+https://github.com/EnshaednHiker/tessellated-security-server.git"
   },
   "author": "EnshaednHiker",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/EnshaednHiker/tessellated-security-server/issues"
   },
