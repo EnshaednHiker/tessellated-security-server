@@ -1,7 +1,7 @@
 # Tessellated Security
-Tessellated Security is an end-to-end service to take your own tessel 2 and a magnetic switch and build your own security system. Check out the main [Github repo here](https://github.com/EnshaednHiker/tessellated-security). 
+Tessellated Security is an end-to-end service to take your own tessel 2 and a magnetic switch and build your own security system. Check out the main [Github repo here](https://github.com/EnshaednHiker/tessellated-security) for a detailed tutorial on how to use the service. 
 
-For the DYI security afficionado, all inclusive code to run a server (Node/Express), webclient, database (MongoDB/Mongoose), and a [tessel](https://tessel.io/) hooked up to a [magnetic door switch](https://www.sparkfun.com/products/13247). A detailed spec sheet of all of the parts used is below along with detailed instructions on how to put what where.  The project's server running here is hosted on Heroku while the database is on mLab. Below is an explanation about setting up your own tessel.
+For the DYI security afficionado, all inclusive code to run a server (Node/Express), webclient, database (MongoDB/Mongoose), and a [tessel](https://tessel.io/) hooked up to a [magnetic door switch](https://www.sparkfun.com/products/13247).The project's server running here is hosted on Heroku while the database is on mLab.
 
 ## Server
 The server at this time is currently hosted on Heroku. I used CircleCI for continuous integration testing. [Github repo for the server API for the service.](https://github.com/EnshaednHiker/tessellated-security-server) The database for the data layer is hosted on mLab
