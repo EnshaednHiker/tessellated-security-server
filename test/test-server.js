@@ -112,7 +112,8 @@ describe('Tessellated Security API', function() {
       }
     };
     let authenticatedToken;
-    let deviceTokenTestDelete; 
+    let deviceTokenTestDelete;
+    let userGetRequest; 
     it('POST endpoint: a new user should be able to create an account', function(){
     let payload = auth.encrypt(dummyUser);  
       
@@ -197,6 +198,27 @@ describe('Tessellated Security API', function() {
           expect(decryptedResponseToken.exp).to.be.above(decryptedResponseToken.iat);
         })
     });
+    it('GET endpoint: an already logged in user should see their logged in user information', function(){
+      let user = auth.jwt.verify(authenticatedToken, auth.secret);
+      console.log("consoling out user:", user);
+      return chai.request(app)
+        .get(`/user/${user.id}`)
+        .set("Authorization", `Bearer ${authenticatedToken}`)
+        .then(function(res){
+          console.log("what's in res.body: ", res.body);
+          //this is an authentication token that gets created after we've successfully logged in, will be reused in protected endpoint tests for testing when a user is logged in
+          authenticatedToken = res.body.user.token;
+          //make more assertions, confirm username, email, and token are all being sent
+          res.body.user.email.should.equal("tesseluser40@gmail.com");
+          res.body.user.token.should.be.a('string');
+          res.body.user.username.should.equal(user.username);
+          //decrypt the token and see what's in there, any good assertions to be made there?
+          decryptedResponseToken = auth.jwt.verify(res.body.user.token, auth.secret);
+          //.exp is when the token expires while .iat is when the token was created, exp should be larger (come after) than iat
+          expect(decryptedResponseToken.exp).to.be.above(decryptedResponseToken.iat);
+          res.should.have.status(200);
+        });
+    });
     it("PUT endpoint: a user needs to be able to update one's username, email, or password to new credentials", function(){
       
       let userNewCredentials =  {
@@ -248,7 +270,6 @@ describe('Tessellated Security API', function() {
             expect(_user.validPassword(userOldCredentials.password, _user)).to.be.true;
           }); 
     });
-
     it("POST endpoint: a user needs to be able to set a tessel device token and tessel device name", function(){
       //this is the token that encrypts the credentials sent from client to server over the wire
       let user = auth.jwt.verify(authenticatedToken, auth.secret);
@@ -276,7 +297,7 @@ describe('Tessellated Security API', function() {
     it("GET endpoint: a user needs to be able to get all of the devices associated with its user account", function(){
       //this is the token that encrypts the credentials sent from client to server over the wire
       let user = auth.jwt.verify(authenticatedToken, auth.secret);
-        
+      let userGetRequest = user;  
         return chai.request(app)
           .get(`/user/${user.id}/tessel`)
           .set("Authorization", `Bearer ${authenticatedToken}`)
