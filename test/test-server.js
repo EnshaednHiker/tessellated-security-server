@@ -205,7 +205,6 @@ describe('Tessellated Security API', function() {
         .get(`/user/${user.id}`)
         .set("Authorization", `Bearer ${authenticatedToken}`)
         .then(function(res){
-          console.log("what's in res.body: ", res.body);
           //this is an authentication token that gets created after we've successfully logged in, will be reused in protected endpoint tests for testing when a user is logged in
           authenticatedToken = res.body.user.token;
           //make more assertions, confirm username, email, and token are all being sent
